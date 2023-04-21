@@ -1,15 +1,12 @@
 CXXFLAGS:= -Wall -pedantic
 
-compila: buffon.x test_rnd.x inverse.x
+compila: buffon.x test_rnd.x dice.x
 
 
 %.x: %.o funzioni.o
 	g++ $^ -o $@ -lrandom -lblas
 
-funzioni.o: funzioni.cpp funzioni.h 
-	g++ ${CXXFLAGS} $< -c
-
-%.o: %.cpp
+%.o: %.cpp %.h
 	g++ ${CXXFLAGS} $< -c
 
 clean:

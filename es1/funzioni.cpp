@@ -6,7 +6,7 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 05 Mar 2023
+Ultima modifica: 21 Apr 2023
 
 Definizione delle funzioni.
 
@@ -72,7 +72,7 @@ void fillR(std::vector<double>& r, unsigned int throws){
 	input.close();
 	} else std::cerr << "PROBLEM: Unable to open seed.in" << std::endl;
 
-	std::ofstream fout("numbers.dat");
+	std::ofstream fout("output_numb.dat");
 	for(unsigned int i=0; i<throws ; i++){
     		r.push_back(rnd.Rannyu());
 			fout<<r[i]<<std::endl;
