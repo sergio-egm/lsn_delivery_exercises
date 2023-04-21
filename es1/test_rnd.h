@@ -6,7 +6,7 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 18 Apr 2023
+Ultima modifica: 21 Apr 2023
 
 Test del generatore di numeri casuali.
 
@@ -22,24 +22,52 @@ Test del generatore di numeri casuali.
 
 using namespace arma;
 
-unsigned int M;     //Numero di numeri generati
-unsigned int N;     //Numero di blocchi
-unsigned int L;     //Numeri per blocco
 
-vec walker(2,fill::zeros);  //Grandezze progressive
-vec summ(2,fill::zeros);    //Somme progressive
-vec summ2(2,fill::zeros);   //Somme progressive dei quadrati
+class Test{
+    public:
+        Test(void);
+        ~Test(){;}
 
-unsigned int ia, iv;    //Indici delle grandezze
+        //Satmpa i risultati a file
+        void Print(unsigned int index);
+        //Evolvo la media e la varianza
+        void Measure(unsigned int index);
+        //Aggiorno la media e la varianza
+        void Accumulate(unsigned index);
+        //Evolvo le medie
+        void Evolve(void);
+        //Test di chi2
+        void Test_Chi2(void);
 
-std::vector<double> r ;     //Numeri generati casualmente
+    private:
+        unsigned int M;     //Numero di numeri generati
+        unsigned int N;     //Numero di blocchi
+        unsigned int L;     //Numeri per blocco
 
-//File di output
-std::ofstream Ave("output_ave.dat");
-std::ofstream Var("output_var.dat");
-std::ofstream Chi("output_chi2.dat");
+        //File di output
+        std::ofstream Ave;
+        std::ofstream Var;
+        std::ofstream Chi;
 
-void Input(void);                   //Inizializzo le mie variabili
-void Print(unsigned int index);     //Stampo a file e a terminale
-void Measure(unsigned int index);   //Evolvo la media e la varianza
-void Accumulate(unsigned index);    //Aggiorno la media e la varianza
+        vec walker{2,fill::zeros};  //Grandezze progressive
+        vec summ{2,fill::zeros};    //Somme progressive
+        vec summ2{2,fill::zeros};   //Somme progressive dei quadrati
+
+        unsigned int ia, iv;    //Indici delle grandezze
+
+        std::vector<double> r ;     //Numeri generati casualmente
+};
+
+
+
+
+/****************************************************************
+*****************************************************************
+
+Sergio Eligio Giovanni Manfrin
+Matricola 968093
+
+Laboratorio di Simulazione Numerica
+
+*****************************************************************
+****************************************************************/
