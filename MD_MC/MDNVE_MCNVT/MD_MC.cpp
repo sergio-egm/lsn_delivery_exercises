@@ -106,7 +106,8 @@ void Input(void)
   ik = 2; //Kinetic energy
   ie = 3; //Total energy
   ip= 4 ; //Pressure *SERGIO*
-  n_props = 5; //Number of observables *SERGIO*
+  iw= 5 ; //Viriale *SERGIO*
+  n_props = 6; //Number of observables *SERGIO*
 
 //Read initial configuration
   cout << "Read initial configuration" << endl << endl;
@@ -177,6 +178,10 @@ void Input(void)
   
 //Evaluate properties of the initial configuration
   Measure();
+
+//Evaluate tail corrections *SERGIO*
+  vtail=8.*pi*rho/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3));
+  ptail=32.*pi*rho*npart/vol/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3)/2.);
 
 //Print initial values for measured properties
   cout << "Initial potential energy = " << walker[iv]/(double)npart << endl;
@@ -328,6 +333,7 @@ void Measure() //Properties measurement
       dx = Pbc(x[i] - x[j]);
       dy = Pbc(y[i] - y[j]);
       dz = Pbc(z[i] - z[j]);
+      //Update of histogram g(r)
 
       dr = dx*dx + dy*dy + dz*dz;
       dr = sqrt(dr);
@@ -403,7 +409,7 @@ void Averages(int iblk) //Print results for current block
     Etot.open("output_etot.dat",ios::app);
     Pres.open("output_pres.dat",ios::app);
 
-    stima_pot = blk_av[iv]/blk_norm/(double)npart; //Potential energy
+    stima_pot = blk_av[iv]/blk_norm/(double)npart+vtail; //Potential energy
     glob_av[iv] += stima_pot;
     glob_av2[iv] += stima_pot*stima_pot;
     err_pot=Error(glob_av[iv],glob_av2[iv],iblk);
@@ -423,7 +429,7 @@ void Averages(int iblk) //Print results for current block
     glob_av2[it] += stima_temp*stima_temp;
     err_temp=Error(glob_av[it],glob_av2[it],iblk);
 
-    stima_pres = blk_av[ip]/blk_norm; //Pressure
+    stima_pres = blk_av[ip]/blk_norm+ptail; //Pressure
     glob_av[ip] += stima_pres;
     glob_av2[ip] += stima_pres*stima_pres;
     err_press=Error(glob_av[ip],glob_av2[ip],iblk);

@@ -3,36 +3,44 @@ import matplotlib.pyplot as plt
 import os
 import subprocess
 
-def rewrite(appo,words):
-    for word in words:
-        appo.writelines(word)
+#Riscrive i parametri che voglio cambiare 
+def rewrite(index,new_value,lines):
+    #Controlla che l'indice sia valido
+    if(index>=len(lines)):
+        print("Indice non valido!\t",index)
+    
+    #Setta il valore nuovo
+    lines[index]=str(new_value)+'\n'
+    #Riscrive il file
+    with open('input.dat','w') as f:
+        f.writelines(lines)
+        f.close()
 
-def comands():
-    os.system('./Monte_Carlo_ISING_1D.exe')
 
-fig,ax=plt.subplots(5,2)
-rows,cols=np.shape(ax)
-ax=np.reshape(ax,rows*cols)
-
-appo=open('input.dat','r')
-idk=appo.readlines()
-appo.close()
-
-numT=9
+#Valori da campionare
+N=11
 Tmin=0.5
 Tmax=2
-delta=(Tmax-Tmin)/numT
+stepT=(Tmax-Tmin)/(N-1)
 
-os.system
-T=np.array([ Tmin+delta*i for i in range(numT+1) ])
-for i in range(len(T)):
-    pippo=open('input.dat','w')
-    comands()
-    idk[0]=str(T[numT-i])+'\n'
-    rewrite(pippo,idk)
-    pippo.close()
-    data=np.loadtxt("output.ene.0")
-    ax[i].plot(data[:,0],data[:,2])
+#Stampa i valori impostati
+print(str(N)+" temperature misurate")
+print("Intervallo di temperature ["+str(Tmin)+","+str(Tmax)+"]")
+print("Lunghezza degli step "+str(stepT)+"\n")
 
+#Legge il file originale
+with open('input.dat','r') as f:
+    lines=f.readlines()
+    f.close()
 
-plt.show()
+print("FILE INIZIALE:\n")
+for line in lines:
+    print(line,end='')
+print("\nFINE FILE INIZIALE\n")
+
+T=np.array([Tmax-stepT*i for i in range(N)])    #Temperature da campionare
+
+for t in T:
+    rewrite(0,t,lines)
+    subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
+    os.system('mv output.ene.0 output_ene_'+str(np.round(t,decimals=2))+'.dat')
