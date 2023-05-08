@@ -6,7 +6,7 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 21 Apr 2023
+Ultima modifica: 1 Mag 2023
 
 Test del generatore di numeri casuali.
 
@@ -16,9 +16,11 @@ Test del generatore di numeri casuali.
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <armadillo>
 
 #include "funzioni.h"
+#include "BlockAnalisys.h"
 
 using namespace arma;
 
@@ -57,6 +59,43 @@ class Test{
 
         std::vector<double> r ;     //Numeri generati casualmente
 };
+
+
+class TestRandom: public Method{
+    public:
+	    TestRandom(void);
+		~TestRandom() override {;}
+		void Run(void) override;
+		void Accumulate(void) override;
+		void Reset(void) override;
+		void Print(void);
+		//void Chi2(void);
+	private:
+        //Indices
+        unsigned int nsam;  //Sample
+        unsigned int nblk;  //Block
+        
+		//Random Number generetor
+		Random rnd;
+        //Generated random number
+        double number;
+
+		//Averasges in the block
+		vec walker{2,fill::zeros};
+		//Averege of the blocks
+		vec ave{2,fill::zeros};
+		vec ave2{2,fill::zeros};
+		
+		//Chi square
+		//vec chi2{2,fill::zeros};
+
+		//Print variables
+		std::ofstream Ave;
+		std::ofstream Var;
+		std::ofstream Chi;
+		std::ofstream Numb;
+};
+
 
 
 
