@@ -19,47 +19,9 @@ Test del generatore di numeri casuali.
 #include <string>
 #include <armadillo>
 
-#include "funzioni.h"
 #include "BlockAnalisys.h"
 
 using namespace arma;
-
-
-class Test{
-    public:
-        Test(void);
-        ~Test(){;}
-
-        //Satmpa i risultati a file
-        void Print(unsigned int index);
-        //Evolvo la media e la varianza
-        void Measure(unsigned int index);
-        //Aggiorno la media e la varianza
-        void Accumulate(unsigned index);
-        //Evolvo le medie
-        void Evolve(void);
-        //Test di chi2
-        void Test_Chi2(void);
-
-    private:
-        unsigned int M;     //Numero di numeri generati
-        unsigned int N;     //Numero di blocchi
-        unsigned int L;     //Numeri per blocco
-
-        //File di output
-        std::ofstream Ave;
-        std::ofstream Var;
-        std::ofstream Chi;
-
-        vec walker{2,fill::zeros};  //Grandezze progressive
-        vec summ{2,fill::zeros};    //Somme progressive
-        vec summ2{2,fill::zeros};   //Somme progressive dei quadrati
-
-        unsigned int ia, iv;    //Indici delle grandezze
-
-        std::vector<double> r ;     //Numeri generati casualmente
-};
-
 
 class TestRandom: public Method{
     public:
@@ -69,7 +31,7 @@ class TestRandom: public Method{
 		void Accumulate(void) override;
 		void Reset(void) override;
 		void Print(void);
-		//void Chi2(void);
+		void Chi2(void);
 	private:
         //Indices
         unsigned int nsam;  //Sample
@@ -77,8 +39,8 @@ class TestRandom: public Method{
         
 		//Random Number generetor
 		Random rnd;
-        //Generated random number
-        double number;
+        //Generated random numbers
+        std::vector<double> number;
 
 		//Averasges in the block
 		vec walker{2,fill::zeros};
@@ -87,7 +49,8 @@ class TestRandom: public Method{
 		vec ave2{2,fill::zeros};
 		
 		//Chi square
-		//vec chi2{2,fill::zeros};
+		double chi2;
+        uvec h;
 
 		//Print variables
 		std::ofstream Ave;
