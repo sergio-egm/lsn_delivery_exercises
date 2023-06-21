@@ -32,12 +32,19 @@ BlockAnalisys::BlockAnalisys(
 //Run the simulation
 void BlockAnalisys::Run(Method& simul){
 	for (unsigned int i=0; i<N ;i++){
+
+		//Uncomment these lines to see box counting
+		//std::cout<<std::endl<<"----------------------"<<std::endl;
+		//std::cout<<std::endl<<"Block number "<<i+1<<std::endl;
+
 		for (unsigned int j=0; j<L ;j++){
 			simul.Run();
 			simul.Accumulate();
 		}
 		simul.Reset();
 	}
+
+	//std::cout<<std::endl<<"----------------------"<<std::endl;
 }
 
 

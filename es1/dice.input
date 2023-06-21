@@ -1,0 +1,6 @@
+1   6
+0   1
+
+
+    ReadInput>>(Uniform) Min  Max
+    ReadInput>>(Gauss)  Mu  sigma

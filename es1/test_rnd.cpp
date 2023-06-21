@@ -6,8 +6,6 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 21 Apr 2023
-
 Test del generatore di numeri casuali.
 
 *****************************************************************
@@ -16,13 +14,70 @@ Test del generatore di numeri casuali.
 #include "test_rnd.h"
 
 int main(int argc,char** argv){
+    unsigned int M; //Number of samples
+    unsigned int N; //Number of block
+
     TestRandom m_test;
-    BlockAnalisys blk(1000000,100);
+    Input(M,N,m_test);
+    BlockAnalisys blk(M,N);
 
     blk.Run(m_test);
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+//Get input values from test.input
+void Input(unsigned int& nsam, unsigned int& nblk, TestRandom& in_test){
+    //Open input file
+    std::ifstream fin("test.input");
+    unsigned int appo;
+
+    //Check if input file exists
+    if(!fin.is_open()){
+        std::cerr<<"PROBLEM: File test.input not found!"<<std::endl;
+        exit(-404);
+    }
+
+    std::cout<<"TESTING RANDOM NUMBER GENERETOR"<<std::endl;
+    std::cout<<std::endl<<"Setting input data from \"input.dat\"..."<<std::endl;
+    std::cout<<std::endl;
+
+    //Get number of smaples
+    fin>>nsam;
+    std::cout<<"Number of sample to generate: "<<nsam<<std::endl;
+    //Get number of blocks
+    fin>>nblk;
+    std::cout<<"Number of blocks: "<<nblk<<std::endl;
+    //Get number of bins for chi2 test
+    fin>>appo;
+    std::cout<<"Number of bins (chi2): "<<appo<<std::endl;
+
+    fin.close();
+    std::cout<<std::endl;
+
+    in_test.SetChi2(appo);
+    std::cout<<"Setted number of bins."<<std::endl;
+    std::cout<<std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 TestRandom::TestRandom(void):nsam{0},nblk{0}{
@@ -56,6 +111,13 @@ TestRandom::TestRandom(void):nsam{0},nblk{0}{
     Var.open("output_var.dat");
     Chi.open("output_chi2.dat");
 	Numb.open("output_numb.dat");
+}
+
+TestRandom::~TestRandom(){
+    Ave.close();
+    Var.close();
+    Chi.close();
+    Numb.close();
 }
 
 //Generate random number
@@ -96,21 +158,29 @@ void TestRandom::Reset(void){
     chi2=0;
 }
 
+//Print the difference between the obtained and the expected value (ave,var)
+//Print the chi2 value
 void TestRandom::Print(void){
+    //Average
     Ave<<nblk<<'\t'<<walker(0)-0.5<<'\t'<<ave(0)-0.5<<'\t'<<sqrt(1./static_cast<double>(nblk-1)*(ave2(0)-std::pow(ave(0),2)))<<std::endl;
+    //Variance
     Var<<nblk<<'\t'<<walker(1)-(1./12.)<<'\t'<<ave(1)-(1./12.)<<'\t'<<sqrt(1./static_cast<double>(nblk-1)*(ave2(1)-std::pow(ave(1),2)))<<std::endl;
+    //Chi2
     Chi<<chi2<<std::endl;
 }
 
+
+//Calculation of chi2
 void TestRandom::Chi2(void){
-    double E{nsam/static_cast<double>(100)};
-    vec appo{number};
-    h=histc(appo,linspace(0.,1.,100+1));
-    //std::cout<<h;
-    for (unsigned int i=0; i<100 ; i++)
+    double E{nsam/static_cast<double>(nblk_chi2)};  //Expected value
+    vec appo{number};   //Vector of data
+
+    //Classify data in "nblk_chi2" bins
+    h=histc(appo,linspace(0.,1.,nblk_chi2+1));
+    
+    for (unsigned int i=0; i<nblk_chi2 ; i++)
         chi2+=pow(E-h(i),2)/E;
 }
-
 
 /****************************************************************
 *****************************************************************

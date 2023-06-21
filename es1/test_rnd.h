@@ -6,8 +6,6 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 1 Mag 2023
-
 Test del generatore di numeri casuali.
 
 *****************************************************************
@@ -23,19 +21,33 @@ Test del generatore di numeri casuali.
 
 using namespace arma;
 
+
+
+//Specific method to test the random generator
 class TestRandom: public Method{
     public:
 	    TestRandom(void);
-		~TestRandom() override {;}
+		~TestRandom() override;
+
+		//Run the simulation
 		void Run(void) override;
+		//Update block averages
 		void Accumulate(void) override;
+		//Reset variables
 		void Reset(void) override;
+		//Print output to file
 		void Print(void);
+		//Chi2 test
 		void Chi2(void);
+		//Set number of samples per block
+		void SetChi2(unsigned int in_nblk){nblk_chi2=in_nblk;}
+
+
 	private:
         //Indices
-        unsigned int nsam;  //Sample
-        unsigned int nblk;  //Block
+        unsigned int nsam;  	//Sample
+        unsigned int nblk;  	//Block
+		unsigned int nblk_chi2;	//Number of samples per block (chi2)
         
 		//Random Number generetor
 		Random rnd;
@@ -59,6 +71,9 @@ class TestRandom: public Method{
 		std::ofstream Numb;
 };
 
+
+//Initialize my system
+void Input(unsigned int& nsam, unsigned int& nblk, TestRandom& in_test);
 
 
 

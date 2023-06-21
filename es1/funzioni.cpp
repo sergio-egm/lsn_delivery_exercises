@@ -22,63 +22,7 @@ bool are_close(double oss, double calc, double eps){
 	return abs(oss-calc)<eps;
 }
 
-//Testo le mie funzioni
-void test_function(){
-	double appo=0;
 
-	std::vector<double> r{7,8,6,9,8};
-
-	appo=average_block(r,5,0);
-	assert(are_close(appo,7.6));
-
-	appo=rms(7.6,58.8,4);
-	assert(are_close(appo,0.509901951));
-
-	appo=var_block(r,1,0,7.6);
-	assert(are_close(appo,1.019803903));
-}
-
-
-
-
-
-//Lettura dati
-//Riempie un vettore con numeri generati casualente tra [0,1]
-//Li salva in un file di output
-void fillR(std::vector<double>& r, unsigned int throws){
-	Random rnd;
-
-	int seed[4];
-	int p1, p2;
-
-
-	std::ifstream Primes("../random_lsn/Primes");
-	if (Primes.is_open()){
-		Primes >> p1 >> p2 ;
-	} else std::cerr << "PROBLEM: Unable to open Primes" << std::endl;
-	Primes.close();
-
-	std::ifstream input("../random_lsn/seed.in");
-	std::string property;
-	if (input.is_open()){
-    	while ( !input.eof() ){
-        	input >> property;
-        	
-			if( property == "RANDOMSEED" ){
-        	input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
-        	rnd.SetRandom(seed,p1,p2);
-        	}
-      	}
-	input.close();
-	} else std::cerr << "PROBLEM: Unable to open seed.in" << std::endl;
-
-	std::ofstream fout("output_numb.dat");
-	for(unsigned int i=0; i<throws ; i++){
-    		r.push_back(rnd.Rannyu());
-			fout<<r[i]<<std::endl;
-	}
-	fout.close();
-}
 
 
 
