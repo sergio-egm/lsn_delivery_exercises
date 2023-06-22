@@ -80,6 +80,23 @@ class Exponential: public Extraction{
 };
 
 
+//Exponential dice extraction
+class Lorentz: public Extraction{
+    public:
+        //Initializing the class by the extreams values
+        Lorentz(double Gamma,double mu):
+            Extraction{"lorentz_"},
+            m_Gamma{Gamma}, m_mu{mu}{;}
+        ~Lorentz() override{;}
+
+        //Evaluation of the extraction
+        double Eval(Random& rnd) const override{return rnd.Lorentz(m_Gamma,m_mu);}
+    
+    private:
+        double m_Gamma, m_mu;
+};
+
+
 //Simulation of dice and extractions
 class Dice{
     public:

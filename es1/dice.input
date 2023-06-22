@@ -1,6 +1,8 @@
 1   6
 1
+1   0
 
 
-    ReadInput>>(Uniform) Min  Max
+    ReadInput>>(Uniform) a  b
     ReadInput>>(Exponential)  lambda
+    ReadInput>>(Lorentz) Gamma mu

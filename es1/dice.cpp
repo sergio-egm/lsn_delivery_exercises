@@ -12,43 +12,38 @@ Usa il metodo dell'inversiobne per l'estrazione di numeri
 
 *****************************************************************
 ****************************************************************/
-#include <iostream>
-#include <fstream>
-#include <vector>
-
-#include "funzioni.h"
-#include "random.h"
 #include "dice.h"
 
-double M;	//Numero di estrazioni
-Random rnd;	//Generatore di numeri casuali
-
-void Input(void);	//Inizializza le variabili
-
 int main(){
-	init_rand(rnd);
-
-	//Numero di blocchi
-	std::vector<unsigned int> N{1,2,10,100};
-	//Number of samples
-	double M=10000;
-
-	for (unsigned int i=0; i<4 ;i++){
-		print_std(rnd,N[i],M);
-		print_exp(rnd,N[i],M);
-		print_ltz(rnd,N[i],M);
-	}
-	//Class Method
 	double a,b;
 	double lambda;
+	double Gamma, mu;
 
-	//std::vector<unsigned int> N{1,2,10,100};
+	std::vector<unsigned int> N{1,2,10,100};
 	std::ifstream fin("dice.input");
 
 	//Getting input data
 	fin>>a>>b;
 	fin>>lambda;
+	fin>>Gamma>>mu;
 	fin.close();
+
+	//Output data
+	std::cout<<"CENTRAL LIMIT THEOREM"<<std::endl;
+	std::cout<<std::endl;
+	std::cout<<"Data initialization:"<<std::endl;
+	std::cout<<std::endl;
+	std::cout<<"STANDARD DICE"<<std::endl;
+	std::cout<<"A: "<<a<<std::endl;
+	std::cout<<"B: "<<b<<std::endl;
+	std::cout<<std::endl;
+	std::cout<<"EXPONENTIAL DICE"<<std::endl;
+	std::cout<<"Lambda: "<<lambda<<std::endl;
+	std::cout<<std::endl;
+	std::cout<<"LORENTZIAN DICE"<<std::endl;
+	std::cout<<"Gamma: "<<Gamma<<std::endl;
+	std::cout<<"Mu: "<<mu<<std::endl;
+	std::cout<<std::endl;
 	
 	//System class
 	Dice dice;
@@ -56,11 +51,30 @@ int main(){
 	//Extraction kinds
 	Standard std(a,b);
 	Exponential exp(lambda);
+	Lorentz ltz(Gamma,mu);
 
 	for(unsigned int i=0; i<N.size() ;i++){
+		std::cout<<"-------------------------------------"<<std::endl;
+		std::cout<<std::endl;
+		std::cout<<"\tN = "<<N[i]<<std::endl;
+		std::cout<<std::endl;
+
+		std::cout<<"\tStandard dice...";
 		dice.Evol(std,N[i]);
+		std::cout<<"DONE!"<<std::endl;
+
+		std::cout<<"\tExponential dice...";
 		dice.Evol(exp,N[i]);
+		std::cout<<"DONE!"<<std::endl;
+
+		std::cout<<"\tLorentzian dice...";
+		dice.Evol(ltz,N[i]);
+		std::cout<<"DONE!"<<std::endl;
+
+		std::cout<<std::endl;
 	}
+	std::cout<<"-------------------------------------"<<std::endl;
+
 
 	return 0;
 }
