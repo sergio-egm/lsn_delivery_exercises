@@ -161,10 +161,13 @@ void TestRandom::Reset(void){
 //Print the difference between the obtained and the expected value (ave,var)
 //Print the chi2 value
 void TestRandom::Print(void){
+    double err{0.};
     //Average
-    Ave<<nblk<<'\t'<<walker(0)-0.5<<'\t'<<ave(0)-0.5<<'\t'<<sqrt(1./static_cast<double>(nblk-1)*(ave2(0)-std::pow(ave(0),2)))<<std::endl;
+    err=(nblk>1)? sqrt(1./static_cast<double>(nblk-1)*(ave2(0)-std::pow(ave(0),2))) : 0.;
+    Ave<<nblk<<'\t'<<walker(0)-0.5<<'\t'<<ave(0)-0.5<<'\t'<<err<<std::endl;
     //Variance
-    Var<<nblk<<'\t'<<walker(1)-(1./12.)<<'\t'<<ave(1)-(1./12.)<<'\t'<<sqrt(1./static_cast<double>(nblk-1)*(ave2(1)-std::pow(ave(1),2)))<<std::endl;
+    err=(nblk>1)? sqrt(1./static_cast<double>(nblk-1)*(ave2(1)-std::pow(ave(1),2))) : 0.;
+    Var<<nblk<<'\t'<<walker(1)-(1./12.)<<'\t'<<ave(1)-(1./12.)<<'\t'<<err<<std::endl;
     //Chi2
     Chi<<chi2<<std::endl;
 }
