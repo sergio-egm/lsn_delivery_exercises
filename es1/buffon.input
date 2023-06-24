@@ -1,0 +1,9 @@
+1000000
+100
+1
+2
+
+    ReadInput>> M (number of throws)
+    ReadInput>> N (number of block)
+    ReadInput>> L
+    ReadInput>> d

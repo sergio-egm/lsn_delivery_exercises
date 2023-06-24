@@ -114,9 +114,10 @@ Dice::Dice(void):
 //Evolution of the sistem
 void Dice::Evol(Extraction& ext, unsigned int N){
 	double Sn=0;
+	std::string base="dice/"+ext.get_extr();
 	std::string suff=".dat";
 	
-	std::ofstream fout(ext.get_extr()+std::to_string(N)+suff);
+	std::ofstream fout(base+std::to_string(N)+suff);
 
 	for (unsigned int i=0; i<M ;i++){
 		Sn=0;

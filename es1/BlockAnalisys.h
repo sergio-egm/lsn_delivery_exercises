@@ -6,8 +6,6 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica: 3 Mag 2023
-
 Use the method of block average to analize data.
 
 *****************************************************************

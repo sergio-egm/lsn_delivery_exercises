@@ -107,10 +107,10 @@ TestRandom::TestRandom(void):nsam{0},nblk{0}{
     }
 
     //Open output files
-    Ave.open("output_ave.dat");
-    Var.open("output_var.dat");
-    Chi.open("output_chi2.dat");
-	Numb.open("output_numb.dat");
+    Ave.open("test/output_ave.dat");
+    Var.open("test/output_var.dat");
+    Chi.open("test/output_chi2.dat");
+	Numb.open("test/output_numb.dat");
 }
 
 TestRandom::~TestRandom(){

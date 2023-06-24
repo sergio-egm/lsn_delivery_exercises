@@ -1,6 +1,7 @@
 #!/bin/bash
-
 # This code remove any file that and as '*.o' , 'output*.dat' , '*.x' .
-git rm -rf output*.dat
-git rm -rf *.o
-git rm -rf *.x
+rm -rf test/*.dat
+rm -rf dice/*.dat
+rm -rf buffon.dat
+rm -rf *.o
+rm -rf *.x
