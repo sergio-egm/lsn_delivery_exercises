@@ -6,8 +6,6 @@ Matricola 968093
 
 Laboratorio di Simulazione Numerica
 
-Ultima modifica:...
-
 ...
 
 *****************************************************************
