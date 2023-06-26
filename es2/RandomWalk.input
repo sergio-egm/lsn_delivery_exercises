@@ -1,0 +1,9 @@
+1000000
+100
+100
+1
+
+    ReadInput>> M (Number of samples)
+    ReadInput>> N (Number of block)
+    ReadInput>> L (RW length)
+    ReadInput>> a (Step length)
