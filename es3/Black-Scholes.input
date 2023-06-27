@@ -1,0 +1,16 @@
+100000 100
+100
+1
+100
+0.1
+0.25
+100
+
+
+    ReadInput>> M N
+    ReadInput>> S(t=0)
+    ReadInput>> T
+    ReadInput>> K
+    ReadInput>> r 
+    ReadInput>> sigma
+    ReadInput>> nstep

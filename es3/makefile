@@ -1,17 +1,8 @@
 CXXFLAGS:=-Wall -pedantic
 
 
-compila: main.x
+compila: Black-Scholes.x
 
 
-main.x: main.o Black-Scholes.o funzioni.o random.o
-	g++ $^ -o $@
-
-random.o: ../random_lsn/random.o
-	cp $^ .
-
-main.o: main.cpp
-	g++ ${CXXFLAGS} $< -c -L -lrandom
-
-%.o: %.cpp %.h
-	g++ ${CXXFLAGS} $< -c -L -lrandom
+%.x: %.cpp %.h
+	g++ ${CXXFLAGS} $^ -o $@ -lblas -lrandom -lBlockAnalisys
