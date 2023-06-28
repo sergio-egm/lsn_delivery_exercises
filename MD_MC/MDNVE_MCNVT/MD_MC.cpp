@@ -106,8 +106,8 @@ void Input(void)
   ik = 2; //Kinetic energy
   ie = 3; //Total energy
   ip= 4 ; //Pressure *SERGIO*
-  iw= 5 ; //Viriale *SERGIO*
-  n_props = 6; //Number of observables *SERGIO*
+  //iw= 5 ; //Viriale *SERGIO*
+  n_props = 5; //Number of observables *SERGIO*
 
 //Read initial configuration
   cout << "Read initial configuration" << endl << endl;
@@ -180,8 +180,8 @@ void Input(void)
   Measure();
 
 //Evaluate tail corrections *SERGIO*
-  vtail=8.*pi*rho/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3));
-  ptail=32.*pi*rho*npart/vol/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3)/2.);
+  //vtail=8.*pi*rho/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3));
+  //ptail=32.*pi*rho*npart/vol/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3)/2.);
 
 //Print initial values for measured properties
   cout << "Initial potential energy = " << walker[iv]/(double)npart << endl;
@@ -322,7 +322,7 @@ void Measure() //Properties measurement
   double v = 0.0, kin=0.0;
   double vij;
   double dx, dy, dz, dr;
-  double summ=0.;
+  double summ{0.};
 
 //cycle over pairs of particles
   for (int i=0; i<npart-1; ++i)
@@ -343,7 +343,6 @@ void Measure() //Properties measurement
         vij = 1.0/pow(dr,12) - 1.0/pow(dr,6);
         v += vij;
         summ += vij + 0.5/pow(dr,6);  //*SERGIO*
-        //cout<<vij<<endl;
       }
     }          
   }
