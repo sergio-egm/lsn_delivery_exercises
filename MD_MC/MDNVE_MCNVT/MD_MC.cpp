@@ -21,7 +21,21 @@ using namespace std;
 int main()
 { 
   Input(); //Inizialization
-  int nconf = 1;
+  //int nconf = 1;
+
+  for (int iblk=1; iblk<=init_steps ; iblk++){
+    Reset(iblk);   //Reset block averages
+    Move();
+    Measure();
+    Accumulate(); //Update block averages
+  }
+
+  Delete(); //Delete outputfile
+
+  cout<<endl;
+  cout<<"System termalized"<<endl;
+  cout<<endl;
+
   for(int iblk=1; iblk <= nblk; iblk++) //Simulation
   {
     Reset(iblk);   //Reset block averages
@@ -30,10 +44,10 @@ int main()
       Move();
       Measure();
       Accumulate(); //Update block averages
-      if(istep%10 == 0){
-        //ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
-        nconf += 1;
-      }
+      //if(istep%10 == 0){
+      //  //ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
+      //  nconf += 1;
+      //}
     }
     Averages(iblk);   //Print results for current block
   }
@@ -93,6 +107,8 @@ void Input(void)
   ReadInput >> nblk;
 
   ReadInput >> nstep;
+
+  ReadInput >> init_steps;
 
   cout << "The program perform Metropolis moves with uniform translations" << endl;
   cout << "Moves parameter = " << delta << endl;
@@ -492,6 +508,21 @@ double Pbc(double r)  //Algorithm for periodic boundary conditions with side L=b
 double Error(double sum, double sum2, int iblk)
 {
     return sqrt(fabs(sum2/(double)iblk - pow(sum/(double)iblk,2))/(double)iblk);
+}
+void Delete(void){
+  ofstream Epot, Ekin, Etot, Temp, Pres;
+  Epot.open("output_epot.dat");
+  Ekin.open("output_ekin.dat");
+  Temp.open("output_temp.dat");
+  Etot.open("output_etot.dat");
+  Pres.open("output_pres.dat");
+
+
+  Epot.close();
+  Ekin.close();
+  Temp.close();
+  Etot.close();
+  Pres.close();
 }
 
 /****************************************************************

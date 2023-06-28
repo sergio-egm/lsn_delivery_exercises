@@ -30,6 +30,7 @@ double err_pot, err_press, err_kin, err_etot, err_temp, err_gdir;
 
 //configuration
 const int m_part=108;
+int init_steps;
 double x[m_part],    y[m_part],    z[m_part];
 double xold[m_part], yold[m_part], zold[m_part];
 double vx[m_part],  vy[m_part],   vz[m_part];
@@ -58,6 +59,7 @@ double Boltzmann(double, double, double, int);
 double Pbc(double);
 double Error(double,double,int);
 double Force(int, int);
+void Delete(void);
 
 #endif
 
