@@ -28,9 +28,13 @@ int main()
     Move();
     Measure();
     Accumulate(); //Update block averages
+    AveragesTerm(iblk);   //Print results for current block
   }
 
-  Delete(); //Delete outputfile
+  if (init_steps>0){
+    temp=glob_av[it]/static_cast<double>(init_steps);
+    cout<<"Termalized temperature = "<<temp<<endl;
+  }
 
   cout<<endl;
   cout<<"System termalized"<<endl;
@@ -509,20 +513,33 @@ double Error(double sum, double sum2, int iblk)
 {
     return sqrt(fabs(sum2/(double)iblk - pow(sum/(double)iblk,2))/(double)iblk);
 }
-void Delete(void){
-  ofstream Epot, Ekin, Etot, Temp, Pres;
-  Epot.open("output_epot.dat");
-  Ekin.open("output_ekin.dat");
-  Temp.open("output_temp.dat");
-  Etot.open("output_etot.dat");
-  Pres.open("output_pres.dat");
 
 
-  Epot.close();
-  Ekin.close();
-  Temp.close();
-  Etot.close();
-  Pres.close();
+void AveragesTerm(int iblk){
+    stima_pot = blk_av[iv]/blk_norm/(double)npart+vtail; //Potential energy
+    glob_av[iv] += stima_pot;
+    glob_av2[iv] += stima_pot*stima_pot;
+    err_pot=Error(glob_av[iv],glob_av2[iv],iblk);
+    
+    stima_kin = blk_av[ik]/blk_norm/(double)npart; //Kinetic energy
+    glob_av[ik] += stima_kin;
+    glob_av2[ik] += stima_kin*stima_kin;
+    err_kin=Error(glob_av[ik],glob_av2[ik],iblk);
+
+    stima_etot = blk_av[ie]/blk_norm/(double)npart; //Total energy
+    glob_av[ie] += stima_etot;
+    glob_av2[ie] += stima_etot*stima_etot;
+    err_etot=Error(glob_av[ie],glob_av2[ie],iblk);
+
+    stima_temp = blk_av[it]/blk_norm; //Temperature
+    glob_av[it] += stima_temp;
+    glob_av2[it] += stima_temp*stima_temp;
+    err_temp=Error(glob_av[it],glob_av2[it],iblk);
+
+    stima_pres = blk_av[ip]/blk_norm+ptail; //Pressure
+    glob_av[ip] += stima_pres;
+    glob_av2[ip] += stima_pres*stima_pres;
+    err_press=Error(glob_av[ip],glob_av2[ip],iblk);
 }
 
 /****************************************************************

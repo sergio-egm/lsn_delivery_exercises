@@ -6,7 +6,7 @@
 5.0
 0.0005
 100
-1000
+2000
 2500
 
   ReadInput >> iNVET; 0=MD(NVE) 1=MC(NVT)

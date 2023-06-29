@@ -59,7 +59,7 @@ double Boltzmann(double, double, double, int);
 double Pbc(double);
 double Error(double,double,int);
 double Force(int, int);
-void Delete(void);
+void AveragesTerm(int);
 
 #endif
 
