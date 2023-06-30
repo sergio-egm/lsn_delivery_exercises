@@ -91,6 +91,8 @@ void Input(void)
 
   ReadInput >> nstep;
 
+  ReadInput >> reset;
+
   if(metro==1) cout << "The program perform Metropolis moves" << endl;
   else cout << "The program perform Gibbs moves" << endl;
   cout << "Number of blocks = " << nblk << endl;
@@ -107,10 +109,23 @@ void Input(void)
   n_props = 4; //Number of observables
 
 //initial configuration
-  for (int i=0; i<nspin; ++i)
-  {
-    if(rnd.Rannyu() >= 0.5) s[i] = 1;
-    else s[i] = -1;
+  if(reset){
+    for (int i=0; i<nspin; ++i)
+    {
+      if(rnd.Rannyu() >= 0.5) s[i] = 1;
+      else s[i] = -1;
+    }
+  }
+  else{
+    ifstream ReadConfig("config.final");
+
+    if (!ReadConfig.is_open()){
+      cerr<<"PROBLEM: Unable to open config.final file!"<<endl;
+      exit(-1);
+    }
+    
+    for(int i=0; i< nspin; i++)
+      ReadConfig >> s[i];
   }
   
 //Evaluate energy etc. of the initial configuration
@@ -164,16 +179,20 @@ double Boltzmann(int sm, int ip)
 void Measure()
 {
   int bin;
-  double u = 0.0, m = 0.0;
+  double u = 0.0 , m=0.;
 
 //cycle over spins
   for (int i=0; i<nspin; ++i)
   {
      u += -J * s[i] * s[Pbc(i+1)] - 0.5 * h * (s[i] + s[Pbc(i+1)]);
 // INCLUDE YOUR CODE HERE
+     m += s[i] ;
   }
   walker[iu] = u;
 // INCLUDE YOUR CODE HERE
+  walker[ic] = u*u;
+  walker[im] = m;
+  walker[ix] = m*m;
 }
 
 
@@ -228,6 +247,30 @@ void Averages(int iblk) //Print results for current block
     Ene.close();
 
 // INCLUDE YOUR CODE HERE
+    Heat.open("output.heat.0",ios::app);
+    stima_c = (blk_av[ic]/blk_norm-pow(blk_av[iu]/blk_norm,2))*pow(beta,2)/(double)nspin; //Heat Capacity
+    glob_av[ic] += stima_c;
+    glob_av2[ic] += stima_c*stima_c;
+    err_c=Error(glob_av[ic],glob_av2[ic],iblk);
+    Heat << setw(wd) << iblk <<  setw(wd) << stima_c << setw(wd) << glob_av[ic]/(double)iblk << setw(wd) << err_c << endl;
+    Heat.close();
+
+    Mag.open("output.mag.0",ios::app);
+    stima_m = blk_av[im]/blk_norm/(double)nspin; //Magnetization
+    glob_av[im] += stima_m;
+    glob_av2[im] += stima_m*stima_m;
+    err_m=Error(glob_av[im],glob_av2[im],iblk);
+    Mag << setw(wd) << iblk <<'\t'<<  setw(wd) << stima_m <<'\t'<< setw(wd) << glob_av[im]/(double)iblk <<'\t'<< setw(wd) << err_m << endl;
+    Mag.close();
+
+    Chi.open("output.chi.0",ios::app);
+    stima_x = blk_av[ix]*beta/blk_norm/(double)nspin; //Susceptibility
+    glob_av[ix] += stima_x;
+    glob_av2[ix] += stima_x*stima_x;
+    err_x=Error(glob_av[ix],glob_av2[ix],iblk);
+    Chi << setw(wd) << iblk <<  setw(wd) << stima_x << setw(wd) << glob_av[ix]/(double)iblk << setw(wd) << err_x << endl;
+    Chi.close();
+
 
     cout << "----------------------------" << endl << endl;
 }

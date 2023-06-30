@@ -37,7 +37,7 @@ int nspin;
 double beta,temp,J,h;
 
 // simulation
-int nstep, nblk, metro;
+int nstep, nblk, metro, reset;
 
 //functions
 void Input(void);

@@ -18,10 +18,18 @@ def rewrite(index,new_value,lines):
 
 
 #Valori da campionare
-N=11
+N=16
 Tmin=0.5
 Tmax=2
 stepT=(Tmax-Tmin)/(N-1)
+
+#Osservabili
+obs=[
+    "ene",
+    "heat",
+    "chi",
+    "mag"
+]
 
 #Stampa i valori impostati
 print(str(N)+" temperature misurate")
@@ -40,7 +48,24 @@ print("\nFINE FILE INIZIALE\n")
 
 T=np.array([Tmax-stepT*i for i in range(N)])    #Temperature da campionare
 
+#Da eliminare
+#if int(lines[4])+1:
+#    lines[4]="1"
+#    print("false")
+#if int(lines[4]):
+#    lines[4]="0"
+#    print("true")
+
 for t in T:
     rewrite(0,t,lines)
     subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
-    os.system('mv output.ene.0 output_ene_'+str(np.round(t,decimals=2))+'.dat')
+    for i in range(3):
+        os.system('mv output.'+ obs[i] +'.0 output_'+ obs[i] +'_'+str(np.round(t,decimals=2))+'.dat')
+    os.system('rm output.mag.0')
+
+    rewrite(3,0.02,lines)
+    subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
+    os.system('mv output.'+ obs[3] +'.0 output_'+ obs[3] +'_'+str(np.round(t,decimals=2))+'.dat')
+    os.system('rm output.*.0')
+
+    rewrite(3,0,lines)

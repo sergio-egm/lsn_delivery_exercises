@@ -1,3 +1,3 @@
-rm -rf output.*
+rm -rf output*
 rm -rf seed.out
 rm -rf config.final
