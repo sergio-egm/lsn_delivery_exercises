@@ -20,16 +20,6 @@ using namespace std;
 int main()
 { 
   Input(); //Inizialization
-  
-  //for (int iblk=1; iblk<=15 ; ++iblk) //Termalization
-  //{
-  //  cout<<""
-  //  for(int istep=1; istep <= nstep; ++istep)
-  //  {
-  //    Move(metro);
-  //    Measure();
-  //  }
-  //}
 
   for(int iblk=1; iblk <= nblk; ++iblk) //Simulation
   {
@@ -161,12 +151,23 @@ void Move(int metro)
         walker[iu]=energy_new;
         s[o]=sm;
       }
-      attempted++;
     }
     else //Gibbs sampling
     {
 // INCLUDE YOUR CODE HERE
+      energy_old=walker[iu];
+      sm=s[o]*-1;
+      energy_down=Boltzmann(s[o],o);
+      energy_up=Boltzmann(sm,o);
+      energy_new=energy_old-energy_down+energy_up;
+      p=1./(1+exp(-beta*(energy_old-energy_new)));
+      if (rnd.Rannyu()<p){
+        walker[iu]=energy_new;
+        s[o]=sm;
+      }
+      accepted++;
     }
+    attempted++;
   }
 }
 

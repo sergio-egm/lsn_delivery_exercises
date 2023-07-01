@@ -16,12 +16,22 @@ def rewrite(index,new_value,lines):
         f.writelines(lines)
         f.close()
 
+def termalization(x,lines):
+    if x==2:
+        rewrite(7,1,lines)
+    rewrite(5,1,lines)
+    rewrite(6,10000,lines)
+    subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
+    os.system('rm output*')
+    if x==2:
+        rewrite(7,0,lines)
+    rewrite(5,100,lines)
+    rewrite(6,10000,lines)
 
 #Valori da campionare
 N=16
 Tmin=0.5
 Tmax=2
-stepT=(Tmax-Tmin)/(N-1)
 
 #Osservabili
 obs=[
@@ -31,10 +41,15 @@ obs=[
     "mag"
 ]
 
+#Metodi
+method=[
+    "Gibbs",
+    "Metropolis"
+]
+
 #Stampa i valori impostati
 print(str(N)+" temperature misurate")
-print("Intervallo di temperature ["+str(Tmin)+","+str(Tmax)+"]")
-print("Lunghezza degli step "+str(stepT)+"\n")
+print("Intervallo di temperature ["+str(Tmin)+" , "+str(Tmax)+"]")
 
 #Legge il file originale
 with open('input.dat','r') as f:
@@ -46,26 +61,21 @@ for line in lines:
     print(line,end='')
 print("\nFINE FILE INIZIALE\n")
 
-T=np.array([Tmax-stepT*i for i in range(N)])    #Temperature da campionare
-
-#Da eliminare
-#if int(lines[4])+1:
-#    lines[4]="1"
-#    print("false")
-#if int(lines[4]):
-#    lines[4]="0"
-#    print("true")
+T=np.linspace(Tmax,Tmin,N)    #Temperature da campionare
 
 for t in T:
-    rewrite(0,t,lines)
-    subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
-    for i in range(3):
-        os.system('mv output.'+ obs[i] +'.0 output_'+ obs[i] +'_'+str(np.round(t,decimals=2))+'.dat')
-    os.system('rm output.mag.0')
+    for val in [1,0]:
+        rewrite(4,val,lines) 
+        rewrite(0,t,lines)
+        termalization(t,lines)
+        subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
+        for i in range(3):
+            os.system('mv output.'+ obs[i] +'.0 '+ method[val]+'/output_'+ obs[i] +'_'+str(np.round(t,decimals=2))+'.dat')
+        os.system('rm output.mag.0')
 
-    rewrite(3,0.02,lines)
-    subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
-    os.system('mv output.'+ obs[3] +'.0 output_'+ obs[3] +'_'+str(np.round(t,decimals=2))+'.dat')
-    os.system('rm output.*.0')
+        rewrite(3,0.02,lines)
+        subprocess.run(['./Monte_Carlo_ISING_1D.exe','input.dat'])
+        os.system('mv output.'+ obs[3] +'.0 '+ method[val]+'/output_'+ obs[3] +'_'+str(np.round(t,decimals=2))+'.dat')
+        os.system('rm output.*.0')
 
-    rewrite(3,0,lines)
+        rewrite(3,0,lines)
