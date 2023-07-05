@@ -1,8 +1,14 @@
-0.5
+2
 1
 5
-20
-2000
+100
+10000
+3
+5
+0.01
+0.7
+0.1
+0.1
 
 
     ReadInput>>mu;
@@ -10,3 +16,9 @@
     ReadInput>>delta;
     ReadInput>>nblk;
     ReadInput>>nstep;
+	ReadInput>>N;
+	ReadInput>>T;
+	ReadInput>>Tmin;
+    ReadInput>>alpha;
+    ReadInput>>delta_mu;
+	ReadInput>>delta_sigma;
