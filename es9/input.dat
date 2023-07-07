@@ -1,0 +1,13 @@
+0.95
+0.02
+0.02
+0.02
+10000
+2
+
+    fin>>m_pc;
+    fin>>m_ps;
+    fin>>m_pp;
+    fin>>m_pi;
+    fin>>nstep;
+    fin>>m_p;

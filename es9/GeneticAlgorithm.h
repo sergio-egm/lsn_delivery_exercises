@@ -12,46 +12,83 @@
 
 using namespace arma;
 
-
-//Get points from configuration collect them
-class Points{
+class Cities{
     public:
-        Points(void);
-        ~Points(){;}
+        Cities(void);
+        ~Cities(){;}
 
-        //Get coordinates
-        double getX(unsigned int index) const{return m_points[index](0);}
-        double getY(unsigned int index) const{return m_points[index](1);}
+        //Evaluate distance between points
+        double Distance(unsigned int i, unsigned int j) const;
+        //Return number of cities
+        unsigned int Nelem(void) const{return coordinates.n_rows;}
 
-        //Get number of points
-        unsigned int size(void) const{return m_points.size();}
-
-        //Get distance between two points
-        double distance(unsigned int x1, unsigned int x2) const {return norm(m_points[x1]-m_points[x2]);}
-
-    private:
-        std::vector<vec> m_points;
-};
-
-
-//Single travel
-class Travel{
-    public:
-        Travel(unsigned int n):cost{0.}
-        {
-            m_x=linspace<uvec>(0,n-1,n);
+        void PrintCity(unsigned int i,std::ostream& os){
+            os<<coordinates(i,0)<<'\t'<<coordinates(i,1)<<std::endl;
         }
-        ~Travel(){;}
 
-        //Chack my configuration
-        void check(void) const;
+        vec Get(unsigned int i){return coordinates.row(i);}
 
-        //Shuffle elements
-        void shuffle (Random& in_rnd);
-
-        //Evaluate cost functoion
-        void eval(const Points& map);
     private:
-        uvec m_x;
-        double cost; 
+        mat coordinates;
 };
+
+class Individual{
+    public:
+        Individual(Random& rnd,unsigned int num);
+        Individual(vec in_vec);
+        ~Individual(){;}
+
+        //Evaluate the loss function
+        double Eval(void);
+
+        //Overloading operators
+        double operator()(unsigned int i){return genies(i);}
+        friend bool operator<(Individual& X1, Individual& X2){return X1.L<X2.L;}
+
+        //Get & Set
+        void SetGen(unsigned int i,double x){genies(i)=x;}
+        double GetGen(unsigned int i){return genies(i);}
+        double GetL(void){return L;}
+        vec GetGenies(void){return genies;}
+
+        //Mutation methods
+        void shuffle(Random& rnd);
+        void permutation(Random &rnd);
+        void inversion(Random &rnd);
+
+
+        //Check if the values are unique and in the range
+        void check(void);
+    private:
+        double L;
+        vec genies;
+};
+
+
+class GeneticAlgorithm{
+    public:
+        GeneticAlgorithm(void);
+        ~GeneticAlgorithm(){;}
+
+        unsigned int Select(void);
+        void Cross(void);
+        void Run(void);
+
+        void PrintBest(void);
+
+    private:
+        std::vector<Individual> population;
+
+        double m_p; //Coefficient p
+
+        //Probabilities
+        double m_pc;
+        double m_ps,m_pp,m_pi;
+
+        Random rnd;
+        unsigned int nstep;
+};
+
+
+
+Cities city;
