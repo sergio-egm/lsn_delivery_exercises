@@ -12,9 +12,23 @@ int main(){
 
 
 
+
+
+
+
+
+
+
+
+//==================================CITIES========================================//
+
+//Initializate cities coordinates
 Cities::Cities(void){
     double x, y;
     unsigned int index{0};
+
+    std::cout<<"GENETIC ALGORITHM: TRAVELING SALESMAN PROBLEM"<<std::endl;
+    std::cout<<std::endl;
 
     std::ifstream fin("config.out");
 
@@ -32,6 +46,7 @@ Cities::Cities(void){
     index--;
 
     std::cout<<"Number of cities : "<<index<<std::endl;
+    std::cout<<std::endl;
 
     fin.close();
 
@@ -48,9 +63,8 @@ Cities::Cities(void){
     fin.close();
 }
 
-
+//Compute distace between cities
 double Cities::Distance(unsigned int i, unsigned int j) const{
-    //std::cout<<i<<" "<<j<<std::endl;
     return norm(coordinates.row(i)-coordinates.row(j));
 }
 
@@ -58,6 +72,22 @@ double Cities::Distance(unsigned int i, unsigned int j) const{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+//=================================INDIVIDUAL==============================//
+
+//Initializers of single individual
 Individual::Individual(Random& rnd,unsigned int num):
     genies{num,fill::zeros}
 {
@@ -66,8 +96,6 @@ Individual::Individual(Random& rnd,unsigned int num):
 
     for (unsigned int t=0; t<2*num ;t++)
         shuffle(rnd);
-    
-    //Eval();
 }
 
 Individual::Individual(vec in_vec):
@@ -76,6 +104,10 @@ Individual::Individual(vec in_vec):
     Eval();
 }
 
+
+
+
+
 //Evaluate the loss function
 double Individual::Eval(void){
     L=0;
@@ -83,13 +115,18 @@ double Individual::Eval(void){
     for (unsigned i=0; i<genies.n_elem ;i++){
         j=genies(i);
         k=genies((i+1)%genies.n_elem);
-        //std::cout<<j<<" "<<k<<std::endl;
         L+=pow(city.Distance(j,k),2);
     }
-    check();
+    //check();
     return L;
 }
 
+
+
+
+
+
+//-------------------MUTATIONS--------------------//
 
 //Shuffle the elements
 void Individual::shuffle(Random& rnd){
@@ -103,8 +140,6 @@ void Individual::shuffle(Random& rnd){
     genies(a)=genies(b);
     genies(b)=appo;
 
-    //std::cout<<a<<" "<<b<<std::endl;
-
     Eval();
 }
 
@@ -115,8 +150,6 @@ void Individual::permutation(Random &rnd){
     unsigned int n=rnd.Rannyu(m,genies.n_elem-m);
     unsigned int j{x},k{x+n};
     unsigned int appo;
-
-    //std::cout<<x<<" "<<m<<" "<<n<<std::endl;
 
     if(k>=genies.n_elem)
         k-=genies.n_elem-1;
@@ -147,8 +180,6 @@ void Individual::inversion(Random& rnd){
     j=x;
     k=n+x-1;
 
-    //std::cout<<x<<" "<<n<<std::endl;
-
     if(k>=genies.n_elem)
         k-=genies.n_elem-1;
     
@@ -164,14 +195,19 @@ void Individual::inversion(Random& rnd){
         if(k==0)
             k=genies.n_elem-1;
     }
-    //std::cout<<genies;
     Eval();
 }
+
+
+
+
+
+
 
 //Check if the values are unique and in the range
 void Individual::check(void){
     vec appo=unique(genies);
-    if(any(genies>33) || any(genies<0)){
+    if(any(genies>city.Nelem()-1) || any(genies<0)){
         std::cerr<<"PROBLEM: Invalid value"<<std::endl;
         exit(-1);
     }
@@ -183,7 +219,25 @@ void Individual::check(void){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+//================================GENETIC=====ALGORITHM===============================//
+
+
+//Initializator
 GeneticAlgorithm::GeneticAlgorithm(void){
+    unsigned int npop;
     //Initialize random generator
     int seed[4];
     int p1, p2;
@@ -204,10 +258,6 @@ GeneticAlgorithm::GeneticAlgorithm(void){
        }
        input.close();
     } else std::cerr << "PROBLEM: Unable to open seed.in" << endl;
-
-
-    for(unsigned int i=0; i<100 ;i++)
-        population.push_back(Individual(rnd,city.Nelem()));
     
     //Get input
     std::ifstream fin("input.dat");
@@ -222,41 +272,43 @@ GeneticAlgorithm::GeneticAlgorithm(void){
     fin>>m_pi;
     fin>>nstep;
     fin>>m_p;
+    fin>>npop;
+
+    std::cout<<std::endl;
+    std::cout<<"Each generation is composed by "<<npop<<" individuals."<<std::endl;
+    std::cout<<"Evaluation of "<<nstep<<" generations."<<std::endl;
+    std::cout<<"p factor : "<<m_p<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<"Probabilities : "<<std::endl;
+    std::cout<<"- Coss Over :"<<m_pc*100<<" % "<<std::endl;
+    std::cout<<"- Shuffle : "<<m_ps*100<<" %"<<std::endl;
+    std::cout<<"- Permutation : "<<m_pp*100<<" % "<<std::endl;
+    std::cout<<std::endl;
 
     fin.close();
+
+    //Initialize population vector
+    for(unsigned int i=0; i<npop ;i++)
+        population.push_back(Individual(rnd,city.Nelem()));
 }
 
 
+
+//Selctor operator
 unsigned int GeneticAlgorithm::Select(void){
     unsigned int appo=population.size()*pow(rnd.Rannyu(),m_p);
-    //std::ofstream fout("select.dat",std::ios::app);
-    //fout<<appo<<std::endl;
-    //fout.close();
     return appo;
 }
 
-void GeneticAlgorithm::Cross(void){
+
+//Crossover operator
+void GeneticAlgorithm::Cross(unsigned int X1,unsigned int X2){
     unsigned int x=rnd.Rannyu(1,city.Nelem());
     unsigned int index{x};
     double appo;
 
-    unsigned int X1=Select();
-    unsigned int X2=Select();
-
     vec vec1=population[X1].GetGenies();
     vec vec2=population[X2].GetGenies();
-    
-    //std::cout<<x<<std::endl;
-    //for(unsigned int i=0; i<city.Nelem() ;i++){
-    //    std::cout<<population[X1](i)<<" ";
-    //}
-    //std::cout<<std::endl;
-    //for(unsigned int i=0; i<city.Nelem() ;i++){
-    //    std::cout<<population[X2](i)<<" ";
-    //}
-    //std::cout<<std::endl;
-    //std::cout<<population[X1].GetL()<<" "<<population[X2].GetL()<<std::endl;
-    //std::cout<<std::endl;
 
     for(unsigned int i=0; i<city.Nelem() ;i++){
         for(unsigned int j=index; j<vec1.n_elem ;j++){
@@ -284,17 +336,6 @@ void GeneticAlgorithm::Cross(void){
 
     population.push_back(Individual(vec1));
     population.push_back(Individual(vec2));
-
-    //for(unsigned int i=0; i<city.Nelem() ;i++){
-    //    std::cout<<population[X1](i)<<" ";
-    //}
-    //std::cout<<std::endl;
-    //for(unsigned int i=0; i<city.Nelem() ;i++){
-    //    std::cout<<population[X2](i)<<" ";
-    //}
-    //std::cout<<std::endl;
-    //std::cout<<population[X1].GetL()<<" "<<population[X2].GetL()<<std::endl;
-    //std::cout<<std::endl;
 }
 
 
@@ -303,27 +344,36 @@ void GeneticAlgorithm::Run(void){
 
     double appo;
     unsigned int G,N,count;
+    unsigned int x1,x2;
 
-    std::cout<<population[0].GetL()<<std::endl;
+    //std::cout<<population[0].GetL()<<std::endl;
 
     N=population.size();
 
+
     for (unsigned int i=0; i<nstep ;i++){
         count=0;
-        for(unsigned int j=0; j<N/2 ;j++){
+        //Create a new generation
+        while(count<N/2){
+            x1=Select();
+            x2=Select();
             if(rnd.Rannyu()<m_pc){
-                Cross();
+                Cross(x1,x2);
                 count++;
             }
         }
 
+        //Eliminate the old one
         population.erase(population.begin(),population.begin()+2*count);
         std::sort(population.begin(),population.end());
+
+        //Check if the size still right
         if(population.size()!=N){
             std::cerr<<"PROBLEM: Something wrong in crossing over."<<std::endl;
             exit(-2);
         }
 
+        //Make some mutation
         for(unsigned int j=0; j<N ;j++){
             G=Select();
             if(rnd.Rannyu()<m_ps){
@@ -342,6 +392,7 @@ void GeneticAlgorithm::Run(void){
 
         appo=0;
 
+        //Output data
         std::cout<<std::endl;
         std::cout<<i+1<<" generation"<<std::endl;
         std::cout<<"Lmin : "<<population[0].GetL()<<std::endl;
@@ -350,15 +401,16 @@ void GeneticAlgorithm::Run(void){
 
         for(unsigned int j=0; j<population.size()/2 ;j++)
             appo+=1./static_cast<double>(j+1)*(population[j].GetL()-appo);
-        fout<<i<<" "<<population[0].GetL()<<" "<<" "<<appo<<std::endl;
+        fout<<i<<" "<<population[0].GetL()<<" "<<appo<<std::endl;
         
     }
-
-    PrintBest();
     fout.close();
+    
+    //Print the best route
+    PrintBest();
 }
 
-
+//Print the best route
 void GeneticAlgorithm::PrintBest(void){
     std::ofstream fout("output.dat");
     unsigned int index;
@@ -369,8 +421,4 @@ void GeneticAlgorithm::PrintBest(void){
     }
 
     fout.close();
-
-    //for(unsigned int i=0; i<population.size() ;i++){
-    //    std::cout<<population[i].GetL()<<" ";
-    //}
 }

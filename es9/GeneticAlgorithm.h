@@ -71,7 +71,7 @@ class GeneticAlgorithm{
         ~GeneticAlgorithm(){;}
 
         unsigned int Select(void);
-        void Cross(void);
+        void Cross(unsigned int X1,unsigned int X2);
         void Run(void);
 
         void PrintBest(void);
