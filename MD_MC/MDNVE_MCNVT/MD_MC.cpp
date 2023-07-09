@@ -47,6 +47,7 @@ int main()
     {
       Move();
       Measure();
+      
       Accumulate(); //Update block averages
       //if(istep%10 == 0){
       //  //ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
@@ -55,6 +56,12 @@ int main()
     }
     Averages(iblk);   //Print results for current block
   }
+
+  ofstream Radd("output_grad.dat");
+  for(unsigned int i=n_props; i<m_props ;i++){
+    Radd<<static_cast<double>(i)*bin_size<<" "<<glob_av[i]<<" "<<Error(glob_av[i],glob_av2[i],nblk)<<endl;
+  }
+  Radd.close();
   ConfFinal(); //Write final configuration
 
   return 0;
@@ -126,8 +133,8 @@ void Input(void)
   ik = 2; //Kinetic energy
   ie = 3; //Total energy
   ip= 4 ; //Pressure *SERGIO*
-  //iw= 5 ; //Viriale *SERGIO*
-  n_props = 5; //Number of observables *SERGIO*
+  iw= 5 ; //Viriale *SERGIO*
+  n_props = 6; //Number of observables *SERGIO*
 
 //Read initial configuration
   cout << "Read initial configuration" << endl << endl;
@@ -199,9 +206,12 @@ void Input(void)
 //Evaluate properties of the initial configuration
   Measure();
 
-//Evaluate tail corrections *SERGIO*
-  //vtail=8.*pi*rho/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3));
-  //ptail=32.*pi*rho*npart/vol/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3)/2.);
+//Evaluate tail corrections *ES7*
+  vtail=8.*pi*rho/3.*(pow(1./rcut,9)/3.-pow(1./rcut,3));
+  ptail=32.*pi*rho*rho*(pow(1./rcut,9)/9.-pow(1./rcut,3)/6.);
+//Initialize bins *ES7*
+  nbins=(m_props-n_props);
+  bin_size=0.5*box/static_cast<double>(nbins);
 
 //Print initial values for measured properties
   cout << "Initial potential energy = " << walker[iv]/(double)npart << endl;
@@ -343,6 +353,10 @@ void Measure() //Properties measurement
   double vij;
   double dx, dy, dz, dr;
   double summ{0.};
+  unsigned int appo=0;
+
+  for(unsigned int i=n_props; i<m_props ;i++)
+    walker[i]=0;
 
 //cycle over pairs of particles
   for (int i=0; i<npart-1; ++i)
@@ -363,6 +377,10 @@ void Measure() //Properties measurement
         vij = 1.0/pow(dr,12) - 1.0/pow(dr,6);
         v += vij;
         summ += vij + 0.5/pow(dr,6);  //*SERGIO*
+        if(dr<0.5*box){
+          appo=n_props+dr/bin_size;
+          walker[appo]+=2;
+        }
       }
     }          
   }
@@ -373,8 +391,8 @@ void Measure() //Properties measurement
   walker[ik] = kin; // Kinetic energy
   walker[it] = (2.0 / 3.0) * kin/(double)npart; // Temperature
   walker[ie] = 4.0 * v + kin;  // Total energy;
-  walker[ip] =rho*temp+summ*16./vol;  //Pressure  *SERGIO*
-  
+  walker[ip] =rho*temp+summ*16/vol;  //Pressure  *SERGIO*
+  ;
 
   return;
 }
@@ -385,14 +403,14 @@ void Reset(int iblk) //Reset block averages
    
    if(iblk == 1)
    {
-       for(int i=0; i<n_props; ++i)
+       for(int i=0; i<m_props; ++i)
        {
            glob_av[i] = 0;
            glob_av2[i] = 0;
        }
    }
 
-   for(int i=0; i<n_props; ++i)
+   for(int i=0; i<m_props; ++i)
    {
      blk_av[i] = 0;
    }
@@ -404,11 +422,12 @@ void Reset(int iblk) //Reset block averages
 
 void Accumulate(void) //Update block averages
 {
-
-   for(int i=0; i<n_props; ++i)
+  
+   for(int i=0; i<m_props; ++i)
    {
      blk_av[i] = blk_av[i] + walker[i];
    }
+   
    blk_norm = blk_norm + 1.0;
 }
 
@@ -418,6 +437,8 @@ void Averages(int iblk) //Print results for current block
     
    ofstream Epot, Ekin, Etot, Temp, Pres;
    const int wd=12;
+   double deltaV;
+   
     
     cout << "Block number " << iblk << endl;
     cout << "Acceptance rate " << accepted/attempted << endl << endl;
@@ -471,6 +492,14 @@ void Averages(int iblk) //Print results for current block
     Etot.close();
     Temp.close();
     Pres.close();
+
+    for (unsigned int i=n_props; i<m_props; i++){
+      deltaV=4*pi/3*(pow(static_cast<double>(i+1)*bin_size,3)-pow(static_cast<double>(i)*bin_size,3));
+      stima_g=blk_av[i]/(rho*static_cast<double>(npart)*deltaV)/blk_norm;
+      glob_av[i]+=1./static_cast<double>(iblk)*(stima_g-glob_av[i]);
+      glob_av2[i]+=1./static_cast<double>(iblk)*(stima_g*stima_g-glob_av2[i]);
+    }
+    
 }
 
 
