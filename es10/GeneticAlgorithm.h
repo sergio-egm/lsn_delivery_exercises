@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include <armadillo>
 
@@ -104,6 +105,6 @@ class GeneticAlgorithm{
 //Shuffle elements
 void shuffle(int* send,int* recive, Random& rnd, int num);
 //Find the minimum value
-void find_min(double* vec,int size);
+int find_min(double* vec,int size);
 
 Cities city;

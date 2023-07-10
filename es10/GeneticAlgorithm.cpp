@@ -9,10 +9,10 @@ int main(int argc,char** argv){
     int* index_send=new int [size];
     int* index_recive=new int [size];
     double* vecL=new double [size];
-    //int* vecLH=new int [size];
     int* send=new int [city.Nelem()];
     int* recive=new int [city.Nelem()];
     double Lmin;
+    int imin;
     Random rnd;
 
     MPI_Status* stat=new MPI_Status [size];
@@ -55,21 +55,14 @@ int main(int argc,char** argv){
     GeneticAlgorithm m_gen(rank,ngen,nmig);
 
     for(unsigned int i=0; i<nmig ;i++){
-        m_gen.Run(rank,ngen,i*ngen);
-
         shuffle(index_send,index_recive,rnd,size);
         m_gen.get_best(send);
         MPI_Send(&send[0],city.Nelem(),MPI_INTEGER,index_send[rank],i*size+rank,MPI_COMM_WORLD);
         MPI_Recv(&recive[0],city.Nelem(),MPI_INTEGER,index_recive[rank],i*size+index_recive[rank],MPI_COMM_WORLD,&stat[rank]);
         m_gen.set_best(recive);
+        
+        m_gen.Run(rank,ngen,i*ngen);
     }
-
-    Lmin=m_gen.get_Lbest();
-
-    MPI_Gather(&Lmin,1,MPI_REAL8,vecL,1,MPI_REAL8,0,MPI_COMM_WORLD);
-
-    if(rank==0)
-        find_min(vecL,size);
 
     delete(send);
     delete(recive);
@@ -78,6 +71,15 @@ int main(int argc,char** argv){
     delete(stat);
 
     m_gen.PrintBest(rank);
+
+    Lmin=m_gen.get_Lbest();
+    MPI_Gather(&Lmin,1,MPI_REAL8,vecL,1,MPI_REAL8,0,MPI_COMM_WORLD);       
+
+    if(rank==0){
+        imin=find_min(vecL,size);
+        std::cout<<"Lowest Loss: "<<vecL[imin]<<std::endl;
+        std::cout<<"Precess "<<imin<<std::endl;
+    }
 
     MPI_Finalize();
     return 0;
@@ -570,18 +572,20 @@ void shuffle(int* send,int* recive, Random& rnd, int num){
 
 
 //Find the minimum value
-void find_min(double* vec,int size){
+int find_min(double* vec,int size){
     double min=vec[0];
     int imin=0;
+
+    std::cout<<std::setw(7)<<"#proc"<<std::setw(12)<<"Loss"<<std::endl;
+    std::cout<<std::setw(7)<<0<<std::setw(12)<<vec[0]<<std::endl;
 
     for (int i=1; i<size ;i++){
         if(min>vec[i]){
             min=vec[i];
             imin=i;
         }
+        std::cout<<std::setw(7)<<i<<std::setw(12)<<vec[i]<<std::endl;
     }
 
-    std::cout<<"Lower loss function : "<<min<<std::endl;
-    std::cout<<"In process "<<imin<<std::endl;
-    std::cout<<std::endl;
+    return imin;
 }
