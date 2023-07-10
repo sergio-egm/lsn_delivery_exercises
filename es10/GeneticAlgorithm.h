@@ -12,6 +12,8 @@
 
 #include "random.h"
 
+#include "mpi.h"
+
 using namespace arma;
 
 class Cities{
@@ -41,7 +43,7 @@ class Individual{
         ~Individual(){;}
 
         //Evaluate the loss function
-        double Eval(void);
+        double Eval(int err);
 
         //Overloading operators
         double operator()(unsigned int i){return genies(i);}
@@ -60,7 +62,7 @@ class Individual{
 
 
         //Check if the values are unique and in the range
-        void check(void);
+        void check(int err);
     private:
         double L;
         vec genies;
@@ -69,14 +71,21 @@ class Individual{
 
 class GeneticAlgorithm{
     public:
-        GeneticAlgorithm(void);
+        GeneticAlgorithm(int rank,unsigned int& ngen,unsigned int& nmig);
         ~GeneticAlgorithm(){;}
 
         unsigned int Select(void);
         void Cross(unsigned int X1,unsigned int X2);
-        void Run(void);
+        void Run(int rank,unsigned int ngen,unsigned int ninit);
 
-        void PrintBest(void);
+        void PrintBest(int rank);
+        
+        //Get & Set the best individual
+        void get_best(int* output);
+        void set_best(int* input);
+        //Get best loss function
+        double get_Lbest(void){return population[0].GetL();}
+        //double get_LbestH(void);
 
     private:
         std::vector<Individual> population;
@@ -89,8 +98,12 @@ class GeneticAlgorithm{
 
         Random rnd;
         unsigned int nstep;
+        unsigned int nmig;
 };
 
-
+//Shuffle elements
+void shuffle(int* send,int* recive, Random& rnd, int num);
+//Find the minimum value
+void find_min(double* vec,int size);
 
 Cities city;

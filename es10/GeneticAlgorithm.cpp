@@ -1,10 +1,85 @@
 #include "GeneticAlgorithm.h"
 
-int main(){
-    GeneticAlgorithm m_gen;
+int main(int argc,char** argv){
+    int size,rank;
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    unsigned int ngen,nmig;
+    int* index_send=new int [size];
+    int* index_recive=new int [size];
+    double* vecL=new double [size];
+    //int* vecLH=new int [size];
+    int* send=new int [city.Nelem()];
+    int* recive=new int [city.Nelem()];
+    double Lmin;
+    Random rnd;
 
-    m_gen.Run();
+    MPI_Status* stat=new MPI_Status [size];
 
+    //Initialize random generator
+    int seed[4];
+    int p1, p2;
+    std::ifstream Primes("Primes");
+    if (Primes.is_open()){
+       Primes >> p1 >> p2 ;
+    } else std::cerr << "PROBLEM: Unable to open Primes" << endl;
+    Primes.close();
+    std::ifstream input("seed.in");
+    std::string property;
+    if (input.is_open()){
+       while ( !input.eof() ){
+          input >> property;
+          if( property == "RANDOMSEED" ){
+             input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+             seed[3]+=size;
+             rnd.SetRandom(seed,p1,p2);
+          }
+       }
+       input.close();
+    } else std::cerr << "PROBLEM: Unable to open seed.in" << endl;
+    //Random initialized
+
+    for(int i=0; i<size ;i++) index_send[i]=(i+1)%size;
+
+
+    if(rank==0){
+        std::cout<<"GENETIC ALGORITHM: TRAVELLING SLAESMAN PROBLEM"<<std::endl;
+        std::cout<<"PARALLEL COMPUTING"<<std::endl;
+        std::cout<<std::endl;
+        std::cout<<"Number of cities : "<<city.Nelem()<<std::endl;
+        std::cout<<std::endl;
+    }
+
+    
+    GeneticAlgorithm m_gen(rank,ngen,nmig);
+
+    for(unsigned int i=0; i<nmig ;i++){
+        m_gen.Run(rank,ngen,i*ngen);
+
+        shuffle(index_send,index_recive,rnd,size);
+        m_gen.get_best(send);
+        MPI_Send(&send[0],city.Nelem(),MPI_INTEGER,index_send[rank],i*size+rank,MPI_COMM_WORLD);
+        MPI_Recv(&recive[0],city.Nelem(),MPI_INTEGER,index_recive[rank],i*size+index_recive[rank],MPI_COMM_WORLD,&stat[rank]);
+        m_gen.set_best(recive);
+    }
+
+    Lmin=m_gen.get_Lbest();
+
+    MPI_Gather(&Lmin,1,MPI_REAL8,vecL,1,MPI_REAL8,0,MPI_COMM_WORLD);
+
+    if(rank==0)
+        find_min(vecL,size);
+
+    delete(send);
+    delete(recive);
+    delete(index_send);
+    delete(index_recive);
+    delete(stat);
+
+    m_gen.PrintBest(rank);
+
+    MPI_Finalize();
     return 0;
 }
 
@@ -28,9 +103,6 @@ Cities::Cities(void){
     unsigned int index{0};
     std::istringstream iss;
 
-    std::cout<<"GENETIC ALGORITHM: TRAVELING SALESMAN PROBLEM"<<std::endl;
-    std::cout<<std::endl;
-
     std::ifstream fin("American_capitals.dat");
 
     //Find if input file si open
@@ -45,9 +117,6 @@ Cities::Cities(void){
         index++;
     }while(!fin.eof());
     index-=2;
-
-    std::cout<<"Number of cities : "<<index<<std::endl;
-    std::cout<<std::endl;
 
     fin.close();
 
@@ -71,7 +140,7 @@ Cities::Cities(void){
     }
     fin.close();
 
-    std::cout<<coordinates<<std::endl;
+    //std::cout<<coordinates<<std::endl;
 }
 
 //Compute distace between cities
@@ -112,7 +181,7 @@ Individual::Individual(Random& rnd,unsigned int num):
 Individual::Individual(vec in_vec):
     genies(in_vec)
 {
-    Eval();
+    Eval(4);
 }
 
 
@@ -120,15 +189,15 @@ Individual::Individual(vec in_vec):
 
 
 //Evaluate the loss function
-double Individual::Eval(void){
+double Individual::Eval(int err){
     L=0;
     unsigned int j,k;
     for (unsigned i=0; i<genies.n_elem ;i++){
         j=genies(i);
         k=genies((i+1)%genies.n_elem);
-        L+=pow(city.Distance(j,k),2);
+        L+=city.Distance(j,k);
     }
-    //check();
+    check(err);
     return L;
 }
 
@@ -151,7 +220,7 @@ void Individual::shuffle(Random& rnd){
     genies(a)=genies(b);
     genies(b)=appo;
 
-    Eval();
+    Eval(1);
 }
 
 //Permutation of elements
@@ -178,7 +247,7 @@ void Individual::permutation(Random &rnd){
         if(k==genies.n_elem)
             k=1;
     }
-    Eval();
+    Eval(2);
 }
 
 //Inversion
@@ -206,7 +275,7 @@ void Individual::inversion(Random& rnd){
         if(k==0)
             k=genies.n_elem-1;
     }
-    Eval();
+    Eval(3);
 }
 
 
@@ -216,14 +285,15 @@ void Individual::inversion(Random& rnd){
 
 
 //Check if the values are unique and in the range
-void Individual::check(void){
+void Individual::check(int err){
     vec appo=unique(genies);
     if(any(genies>city.Nelem()-1) || any(genies<0)){
-        std::cerr<<"PROBLEM: Invalid value"<<std::endl;
+        std::cerr<<"PROBLEM: Invalid value\nError "<<err<<std::endl;
         exit(-1);
     }
     else if(appo.n_elem!=city.Nelem()){
-        std::cerr<<"PROBLEM: Not unique values"<<std::endl;
+        std::cerr<<"PROBLEM: Not unique values\nError "<<err<<std::endl;
+        //std::cerr<<appo<<std::endl;
         exit(-1);
     }
 }
@@ -247,7 +317,7 @@ void Individual::check(void){
 
 
 //Initializator
-GeneticAlgorithm::GeneticAlgorithm(void){
+GeneticAlgorithm::GeneticAlgorithm(int rank,unsigned int& ngen,unsigned int& nmig){
     unsigned int npop;
     //Initialize random generator
     int seed[4];
@@ -264,6 +334,7 @@ GeneticAlgorithm::GeneticAlgorithm(void){
           input >> property;
           if( property == "RANDOMSEED" ){
              input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
+             seed[3]+=rank;
              rnd.SetRandom(seed,p1,p2);
           }
        }
@@ -284,19 +355,25 @@ GeneticAlgorithm::GeneticAlgorithm(void){
     fin>>nstep;
     fin>>m_p;
     fin>>npop;
+    fin>>nmig;
 
-    std::cout<<std::endl;
-    std::cout<<"Each generation is composed by "<<npop<<" individuals."<<std::endl;
-    std::cout<<"Evaluation of "<<nstep<<" generations."<<std::endl;
-    std::cout<<"p factor : "<<m_p<<std::endl;
-    std::cout<<std::endl;
-    std::cout<<"Probabilities : "<<std::endl;
-    std::cout<<"- Coss Over :"<<m_pc*100<<" % "<<std::endl;
-    std::cout<<"- Shuffle : "<<m_ps*100<<" %"<<std::endl;
-    std::cout<<"- Permutation : "<<m_pp*100<<" % "<<std::endl;
-    std::cout<<std::endl;
-
+    if(rank==0){
+        std::cout<<std::endl;
+        std::cout<<"Each generation is composed by "<<npop<<" individuals."<<std::endl;
+        std::cout<<"Evaluation of "<<nstep<<" generations."<<std::endl;
+        std::cout<<"p factor : "<<m_p<<std::endl;
+        std::cout<<std::endl;
+        std::cout<<"Probabilities : "<<std::endl;
+        std::cout<<"- Coss Over :"<<m_pc*100<<" % "<<std::endl;
+        std::cout<<"- Shuffle : "<<m_ps*100<<" %"<<std::endl;
+        std::cout<<"- Permutation : "<<m_pp*100<<" % "<<std::endl;
+        std::cout<<"- Inversion : "<<m_pi*100<<" % "<<std::endl;
+        std::cout<<std::endl;
+        std::cout<<"Number of migrations : "<<nmig<<std::endl;
+    }
     fin.close();
+
+    ngen=nstep/nmig;
 
     //Initialize population vector
     for(unsigned int i=0; i<npop ;i++)
@@ -350,8 +427,9 @@ void GeneticAlgorithm::Cross(unsigned int X1,unsigned int X2){
 }
 
 
-void GeneticAlgorithm::Run(void){
-    std::ofstream fout("cost.dat");
+void GeneticAlgorithm::Run(int rank,unsigned int ngen,unsigned int ninit){
+    std::string name="cost"+std::to_string(rank)+".dat";
+    std::ofstream fout(name,ios::app);
 
     double appo;
     unsigned int G,N,count;
@@ -362,7 +440,7 @@ void GeneticAlgorithm::Run(void){
     N=population.size();
 
 
-    for (unsigned int i=0; i<nstep ;i++){
+    for (unsigned int i=ninit; i<ngen+ninit ;i++){
         count=0;
         //Create a new generation
         while(count<N/2){
@@ -404,11 +482,13 @@ void GeneticAlgorithm::Run(void){
         appo=0;
 
         //Output data
-        std::cout<<std::endl;
-        std::cout<<i+1<<" generation"<<std::endl;
-        std::cout<<"Lmin : "<<population[0].GetL()<<std::endl;
-        std::cout<<std::endl;
-        std::cout<<"----------------------------------------------"<<std::endl;
+        if(rank==0){
+            std::cout<<std::endl;
+            std::cout<<i+1<<" generation"<<std::endl;
+            std::cout<<"Lmin : "<<population[0].GetL()<<std::endl;
+            std::cout<<std::endl;
+            std::cout<<"----------------------------------------------"<<std::endl;
+        }
 
         for(unsigned int j=0; j<population.size()/2 ;j++)
             appo+=1./static_cast<double>(j+1)*(population[j].GetL()-appo);
@@ -416,14 +496,12 @@ void GeneticAlgorithm::Run(void){
         
     }
     fout.close();
-    
-    //Print the best route
-    PrintBest();
 }
 
 //Print the best route
-void GeneticAlgorithm::PrintBest(void){
-    std::ofstream fout("output.dat");
+void GeneticAlgorithm::PrintBest(int rank){
+    std::string name="output"+std::to_string(rank)+".dat";
+    std::ofstream fout(name);
     unsigned int index;
 
     for(unsigned int i=0; i<city.Nelem() ;i++){
@@ -432,4 +510,78 @@ void GeneticAlgorithm::PrintBest(void){
     }
 
     fout.close();
+}
+
+
+//Get the best individual
+void GeneticAlgorithm::get_best(int* output){
+    for(unsigned int i=0; i<city.Nelem() ;i++)
+        output[i]=population[0](i);
+    //std::cout<<output[0]<<std::endl;
+}
+
+//Set the best individual
+void GeneticAlgorithm::set_best(int* input){
+    //std::cout<<input[0]<<std::endl;
+    vec appo{100,fill::zeros};
+    for(unsigned int i=0; i<city.Nelem() ;i++){
+        population[0].SetGen(i,input[i]);
+        //std::cout<<input[i]<<" ";
+        appo(i)=input[i];
+    }
+    //std::cout<<std::endl;
+    //std::cout<<sort(appo)<<std::endl;
+    population[0].Eval(5);
+    std::sort(population.begin(),population.end());
+}
+
+
+
+
+
+
+
+
+
+//===========================FUNCTIONS=================================//
+//Shuffle elements
+void shuffle(int* send,int* recive, Random& rnd, int num){
+    int appo=0;
+    int j,k;
+
+    while(appo==0){
+        for (int i=0; i<2*num ;i++){
+            j=rnd.Rannyu(0,num);
+            k=rnd.Rannyu(0,num);
+
+            appo=send[j];
+            send[j]=send[k];
+            send[k]=appo;
+        }
+
+        appo=1;
+
+        for(int i=0; i<num ;i++ )appo*=send[i]-i;
+    }
+
+    for(int i=0; i<num ;i++)
+        recive[send[i]]=i;
+}
+
+
+//Find the minimum value
+void find_min(double* vec,int size){
+    double min=vec[0];
+    int imin=0;
+
+    for (int i=1; i<size ;i++){
+        if(min>vec[i]){
+            min=vec[i];
+            imin=i;
+        }
+    }
+
+    std::cout<<"Lower loss function : "<<min<<std::endl;
+    std::cout<<"In process "<<imin<<std::endl;
+    std::cout<<std::endl;
 }

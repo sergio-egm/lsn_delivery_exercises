@@ -5,6 +5,7 @@
 1500
 2
 200
+10
 
     fin>>m_pc;
     fin>>m_ps;
@@ -13,3 +14,4 @@
     fin>>nstep;
     fin>>m_p;
     fin>>npop;
+    fin>>nmig;

@@ -2,6 +2,9 @@ CXXFLG=-Wall -pedantic
 
 compila: GeneticAlgorithm.x
 
+esegui:
+	mpiexec -np 2 GeneticAlgorithm.x
+
 
 %.x: %.cpp %.h
-	g++ ${CXXFLG} $< -o $@ -lrandom
+	mpicxx ${CXXFLG} $< -o $@ -lrandom
